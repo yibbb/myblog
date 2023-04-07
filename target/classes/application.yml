@@ -1,0 +1,10 @@
+spring:
+  thymeleaf:
+    mode: HTML
+  profiles:
+    active: dev
+server:
+  port: 8080
+
+comment.avatar:
+message.avarer:

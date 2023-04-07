@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.blog.dao.BlogDao">
+    <select id="getallBlog" resultType="com.blog.queryDto.BlogQuery">
+    select * from blog
+   </select>
+    <select id="getShowBlog" resultType="com.blog.queryDto.ShowBlog">
+    select * from blog where id=#{id}
+</select>
+    <select id="getBlogSearch" parameterType="com.blog.queryDto.SearchBlog" resultType="com.blog.queryDto.BlogQuery">
+       <bind name="pattern" value="'%'+title+'%'"/>
+        select *from blog
+        <where>
+            <if test="typeId!=null">
+                and type_id=#{typeId}
+            </if>
+            <if test="title!=null">
+                and title like #{pattern}
+            </if>
+        </where>
+    </select>
+
+    <!--查询首页最新博客列表信息-->
+    <resultMap id="firstPageBlog" type="com.blog.queryDto.FirstPageBlog">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="firstPicture" column="first_picture"/>
+        <result property="views" column="views"/>
+        <result property="commentCount" column="comment_count"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="description" column="description"/>
+        <result property="typeName" column="name"/>
+        <result property="nickname" column="nickname"/>
+        <result property="avatar" column="avatar"/>
+    </resultMap>
+    <select id="getAllFirstPageBlog" resultMap="firstPageBlog">
+        select b.id,b.title,b.first_picture, b.views, b.comment_count,b.create_time,b.update_time,b.description,
+               t.name ,
+               u.nickname, u.avatar
+        from blog b,type t,user u
+        where b.type_id = t.id and  u.id = b.user_id order by b.create_time desc
+    </select>
+
+    <!--查询推荐文章-->
+    <select id="getAllRecommendBlog" resultType="com.blog.queryDto.RecommendBlog">
+        select * from blog where blog.recommend = true order by blog.create_time desc limit 4;
+    </select>
+
+<!--    搜索博客-->
+    <select id="getSearchBlog" resultMap="firstPageBlog">
+        <bind name="pattern" value="'%'+query+'%'"/>
+        select b.id,b.title,b.first_picture, b.views, b.comment_count,b.create_time,b.update_time,b.description,
+               t.name ,
+               u.nickname, u.avatar
+        from blog b,type t,user u
+        where b.type_id = t.id and  u.id = b.user_id and (b.title like #{pattern} or b.content like #{pattern})  order by b.update_time desc
+    </select>
+<!--    查询博客详情-->
+    <resultMap id="detailedBlog" type="com.blog.queryDto.DetailedBlog">
+        <id property="id" column="bid"/>
+        <result property="firstPicture" column="first_picture"/>
+        <result property="flag" column="flag"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="typeName" column="name"/>
+        <result property="views" column="views"/>
+        <result property="commentCount" column="comment_count"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="commentabled" column="commentabled"/>
+        <result property="shareStatement" column="share_statement"/>
+        <result property="appreciation" column="appreciation"/>
+        <result property="nickname" column="nickname"/>
+        <result property="avatar" column="avatar"/>
+    </resultMap>
+
+    <!--博客详情查询-->
+    <select id="getDetailedBlog" resultMap="detailedBlog">
+        select b.id bid,b.first_picture,b.flag,b.title,b.content,b.views,b.comment_count,b.update_time,b.commentabled,b.share_statement,b.appreciation, u.nickname,u.avatar,t.name
+        from blog b,user u, type t
+        where b.user_id = u.id and b.type_id = t.id and b.id = #{id}
+    </select>
+
+    <!--根据TypeId查询博客列表，显示在分类页面-->
+    <select id="getBlogByTypeId" resultMap="firstPageBlog">
+        select b.id,b.title,b.first_picture, b.views, b.comment_count, b.update_time, b.description,t.name ,u.nickname, u.avatar
+        from blog b, type t,user u
+        where b.type_id = t.id and u.id = b.user_id and b.type_id = #{typeId} order by b.update_time desc
+    </select>
+</mapper>
